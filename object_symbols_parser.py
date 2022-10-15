@@ -8,6 +8,9 @@ import pandas as pd
 import time
 import os
 import tempfile
+import glob
+import cxxfilt
+
 
 def combine_white_space(text):
     '''
@@ -40,17 +43,28 @@ def parse_syms(syms):
     '''
     Takes a list of tuples with the origin file and the symbol entry line
     '''
-    lines = {"section": [], "size": [], "name": [], "fname": []}
+    lines = {"section": [], "size": [], "name": [], "fname": [], "demangled name": []}
     #with open(fname, 'r') as f:
+
     for fname, line in syms:
         print(fname)
         try:
             size, section, name = read_line(line)
         except (ValueError, IndexError):
             continue
+
+        demangled_name = name
+
+        try:
+            demangled_name = cxxfilt.demangle(name)
+        except ParseError as e:
+            print(e)
+            pass
+
         lines["size"].append(size)
         lines["section"].append(section)
         lines["name"].append(name)
+        lines["demangled name"].append(demangled_name)
         lines["fname"].append(fname)
 
     df = pd.DataFrame(lines)
@@ -73,15 +87,35 @@ def read_objdump_syms(fname, fout=None, tool_chain="./", objdump="objdump"):
     return syms
 
 
+def get_all_files_with_ending(directory="./", ending=".o"):
+    '''
+    Walk through all the directories under the head, return all files that have
+    the specified ending
+    '''
+    object_files = []
+    for fdir, _, fnames in os.walk(directory):
+        object_files.extend([os.path.join(fdir, fname) for fname in fnames if fname.endswith(ending)])
+    return object_files
+
+
 @click.command()
-@click.option("--fname", "-f", required=True, multiple=True)
+@click.option("--fname", "-f", required=False, default=None, multiple=True)
 @click.option("--fout", "-o", default=None)
+@click.option("--all-objects", is_flag=True, help="Glob current directory for all .o files")
 @click.option("--tool-chain", "-t", default="")
-def main(fname, fout, tool_chain):
+def main(fname, fout, all_objects, tool_chain):
     '''
     Takes the toolchain as an option. If the toolchain value is none search the path instead.
     '''
     syms = []
+    if all_objects:
+        obj_files = get_all_files_with_ending()
+        try:
+            fname = list(fname)
+            fname.extend(obj_files)  #  try and extend fname, this allows appending none .o files
+        except TypeError:
+            fname = obj_files
+
     for f in fname:
         fsyms = read_objdump_syms(f, tempfile.mkstemp()[1], tool_chain)
         for line in fsyms.split("\n"):
@@ -92,6 +126,7 @@ def main(fname, fout, tool_chain):
             fout = f"{fname[0].rsplit('.', maxsplit=1)[0]}_out_{int(time.time())}.xlsx"
         else:
             fout = f"{objdump}_out_{int(time.time())}.xlsx"
+
 
     df.to_excel(fout)
     print(f"Success, output saved to {fout}")
