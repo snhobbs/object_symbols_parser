@@ -21,5 +21,4 @@ Generates a Pandas dataframe and saves it to a spreadsheet. By default the resul
 ## Requirements
 + click
 + pandas
-+ cxxfilt: https://github.com/afq984/python-cxxfilt
 + GNU Bintools

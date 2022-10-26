@@ -40,6 +40,8 @@ class gr1:
 
 
 def parse_syms(syms):
+    if len(syms) == 0:
+        return None
     lines = [pt[1] for pt in syms]
     fnames = [pt[0] for pt in syms]
 
@@ -117,6 +119,9 @@ def main(source_file, fout, tool_chain):
         fsyms = read_objdump_syms(f, tempfile.mkstemp()[1], tool_chain)
         for line in fsyms.split("\n"):
             syms.append((f, line))
+    if len(syms) == 0:
+        print("No symbols found")
+        return
     df = parse_syms(syms)
     df["section type"] = [section.strip(".").split(".")[0] for section in df["section"]]
     df.sort_values(by="size", axis=0, ascending=False, inplace=True, kind='quicksort', na_position='last', ignore_index=True, key=None)
