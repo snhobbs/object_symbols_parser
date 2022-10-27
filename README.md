@@ -1,4 +1,4 @@
-# object_symbols_parser
+# object-symbols-parser
 Command line tool that reads object file symbol table, generate a sorted spreadsheet with the entries. Intended for embedded development where memory and code space needs to be optimized.
 
 ## Usage
