@@ -38,7 +38,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/p/pulse_transitions  # Replace <package-name> with your PyPI project name
+      url: https://pypi.org/p/object_symbols_parser  # Replace <package-name> with your PyPI project name
     permissions:
       id-token: write  # IMPORTANT: mandatory for trusted publishing
 
@@ -59,7 +59,7 @@ jobs:
 
     environment:
       name: testpypi
-      url: https://test.pypi.org/p/pulse_transitions
+      url: https://test.pypi.org/p/object_symbols_parser
 
     permissions:
       id-token: write  # IMPORTANT: mandatory for trusted publishing
