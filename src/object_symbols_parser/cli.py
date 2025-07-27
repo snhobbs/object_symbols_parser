@@ -4,12 +4,11 @@ aggregates them into a DataFrame, and writes a sorted Excel report
 (grouped by section type, sorted by symbol size).
 """
 
-import time
-import os
-from pathlib import Path
-import tempfile
 import logging
+from pathlib import Path
+
 import click
+
 from object_symbols_parser import get_objdump_syms
 
 log_ = logging.getLogger("object_symbols_parser")
@@ -36,7 +35,7 @@ def main(source_file, fout, tool_chain, debug):
 
     fout = fout or Path(source_file[0]).with_suffix(".xlsx")
 
-    extensions=[".o", ".obj"]
+    extensions=(".o", ".obj")
     df = get_objdump_syms(source_file=source_file, tool_chain=tool_chain, extensions=extensions)
     df.to_excel(fout, index=False)
     logging.info("Success, output saved to %s", fout)

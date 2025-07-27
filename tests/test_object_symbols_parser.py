@@ -1,5 +1,7 @@
 import unittest
+
 from object_symbols_parser import combine_white_space
+
 
 class TestCombineWhiteSpace(unittest.TestCase):
     def test_single_spaces(self):

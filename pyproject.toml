@@ -161,7 +161,7 @@ select = [
   "TCH",
   "INT",
   # "ARG", # Unused function argument
-  "PTH",
+  #"PTH",
   "ERA",
   "PD",
   "PGH",
@@ -184,6 +184,8 @@ ignore = [
   "E501",   # line too long
   "PD901",  # generic names
   "ERA001", # commented out code
+  "S603",
+  "PT009"
 ]
 # Allow fix for all enabled rules (when `--fix`) is provided.
 fixable = ["ALL"]

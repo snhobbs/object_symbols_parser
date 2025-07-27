@@ -4,15 +4,16 @@ and writes a sorted Excel (.xlsx) report by size and section.
 """
 
 
-import time
+import logging
+import math
 import os
 import subprocess
-import math
-import logging
-from shutil import which
-import pandas as pd
-import numpy as np
+import time
 from pathlib import Path
+from shutil import which
+
+import numpy as np
+import pandas as pd
 
 log_ = logging.getLogger("object_symbols_parser")
 
@@ -22,7 +23,7 @@ def combine_white_space(text: str) -> str:
     return " ".join(text.split())
 
 
-def get_all_files_with_ending(directory="./", ending=".o") -> list:
+def get_all_files_with_ending(directory="./", ending=".o") -> list[str]:
     """
     Walk through all the directories under the head, return all files that have
     the specified ending
@@ -35,7 +36,7 @@ def get_all_files_with_ending(directory="./", ending=".o") -> list:
     return object_files
 
 
-def parse_symbols_from_lines(sym_lines: list) -> pd.DataFrame:
+def parse_symbols_from_lines(sym_lines: list[str]) -> pd.DataFrame:
     if len(sym_lines) == 0:
         return None
     lines = [pt[1] for pt in sym_lines]
@@ -74,7 +75,7 @@ def parse_symbols_from_lines(sym_lines: list) -> pd.DataFrame:
     )
 
 
-def process_files(source_file, tool_chain, extensions):
+def process_files(source_file, tool_chain, extensions) -> list[str]:
     fnames = []
     for f in source_file:
         if os.path.isfile(f):
@@ -91,7 +92,7 @@ def resolve_objdump_path(tool_chain, objdump="objdump"):
     return which(objdump) or objdump
 
 
-def run_objdump_syms(fname: str, fout=None, *, tool_chain=None, objdump="objdump") -> str:
+def run_objdump_syms(fname: str | Path, fout=None, *, tool_chain=None, objdump="objdump") -> str:
     """
     Returns the entirety of the objdump as a string
     """
@@ -105,14 +106,14 @@ def run_objdump_syms(fname: str, fout=None, *, tool_chain=None, objdump="objdump
         result = subprocess.run(
             [cmd, "--demangle", "--syms", fname],
             check=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            capture_output=True,
             text=True,
         )
     except subprocess.CalledProcessError as e:
-        raise RuntimeError(f"objdump failed: {e.stderr.strip()}") from e
+        msg = f"objdump failed: {e.stderr.strip()}"
+        raise RuntimeError(msg) from e
 
-    with open(fout, "w") as f:
+    with Path(fout).open("w") as f:
         f.write(result.stdout)
 
     return result.stdout
@@ -122,7 +123,7 @@ def get_objdump_syms(source_file, tool_chain, extensions, objdump="objdump"):
     fnames = process_files(source_file, tool_chain, extensions=extensions)
     if not fnames:
         logging.error("No object files found.")
-        return
+        return None
 
     sym_lines = []
 
@@ -132,24 +133,22 @@ def get_objdump_syms(source_file, tool_chain, extensions, objdump="objdump"):
 
     if len(sym_lines) == 0:
         logging.error("No symbols found")
-        return
+        return None
 
     df = parse_symbols_from_lines(sym_lines)
 
     if df is None or df.empty:
         logging.error("No valid symbols found.")
-        return
+        return None
 
     df["section type"] = [section.strip(".").split(".")[0] for section in df["section"]]
 
-    df.sort_values(
+    return df.sort_values(
         by=["section type", "size"],  #  primary, secondary key
         axis=0,
         ascending=[False, False],
-        inplace=True,
         kind="stable",
         ignore_index=True,
         na_position="last",
         key=None,
     )
-    return df
