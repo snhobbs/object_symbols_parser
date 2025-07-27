@@ -20,6 +20,7 @@ keywords=['object_symbols_parser', 'embedded', 'mcu', 'arm', 'binary', 'elf']
 readme="README.md"
 
 license="MIT"
+license-files = ["LICENSE"]
 
 [project.scripts]
 object_symbols_parser='object_symbols_parser.cli:main'
@@ -27,8 +28,6 @@ object_symbols_parser='object_symbols_parser.cli:main'
 [project.urls]
 github="https://github.com/snhobbs/object_symbols_parser"
 
-[tool.setuptools]
-license-files = ["LICENSE"]
 
 [tool.setuptools.dynamic]
 dependencies = {file = ["requirements.txt"]}
@@ -185,7 +184,9 @@ ignore = [
   "PD901",  # generic names
   "ERA001", # commented out code
   "S603",
-  "PT009"
+  "PT009",
+  "RUF200",
+  "UP007"
 ]
 # Allow fix for all enabled rules (when `--fix`) is provided.
 fixable = ["ALL"]

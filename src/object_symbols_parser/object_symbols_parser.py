@@ -11,6 +11,7 @@ import subprocess
 import time
 from pathlib import Path
 from shutil import which
+from typing import Union
 
 import numpy as np
 import pandas as pd
@@ -92,7 +93,7 @@ def resolve_objdump_path(tool_chain, objdump="objdump"):
     return which(objdump) or objdump
 
 
-def run_objdump_syms(fname: str | Path, fout=None, *, tool_chain=None, objdump="objdump") -> str:
+def run_objdump_syms(fname: Union[str, Path], fout=None, *, tool_chain=None, objdump="objdump") -> str:
     """
     Returns the entirety of the objdump as a string
     """
